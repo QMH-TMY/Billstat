@@ -55,16 +55,16 @@ class DebtManage():
 		self.excg_rate  = self.exchange_rate()          #设置实时人民币兑美元汇率
 		self.detail_tm  = self.date_time()              #设置时间
 		self.cost_dict  = {                             #消费信息项名称
-			                "1":'time',		            #时间 
+			                "1":'time',					#时间 
 		                    "2":'rmb',                  #消费金额(元)
-							"3":'dollar',               #消费金额(美元)
+							"3":'dollar',				#消费金额(美元)
 			              }
 		self.sheet_info = {                             #excel表项名称,时间，消费方式等等
-			                "1":'Date(y-m-d h:m:s)',	#时间 
+							"1":'Date(y-m-d h:m:s)',	#时间 
 		                    "2":'Method',               #消费方式
-							"3":'Expenditure(￥)',      #消费金额(元)
-							"4":'Expenditrue($)',       #消费金额(美元)
-							"5":'Notes'                 #注
+							"3":'Expenditure(￥)',		#消费金额(元)
+							"4":'Expenditrue($)',		#消费金额(美元)
+							"5":'Notes'					#注
 						  }
 
 	########1.获取人民币兑美元汇率#########################
@@ -119,11 +119,11 @@ class DebtManage():
 			year   = str(date[0][0]) 
 			time_d = "".join(date[0])
 		else:
-			year   = str(datetime.datetime.now().year)                #邮件里没记录时间就用当前时间
+			year   = str(datetime.datetime.now().year)		#邮件里没记录时间就用当前时间
 			time_d = self.detail_tm[0]
 
 		textline = emailObj.readline()
-		money_p = re.compile(r'(\w+?)(:)?(\d+)(\.)?(\d+)?')           #正则查找消费数据
+		money_p = re.compile(r'(\w+?)(:)?(\d+)(\.)?(\d+)?')	#正则查找消费数据
 		money   = money_p.findall(textline)
 		if money:
 			cost_info = self.get_money_dic(year, time_d, money)
@@ -144,7 +144,7 @@ class DebtManage():
 			yuan_l  = tuple_t[2:]                #解析消费金额字符为列表
 			yuan_rmb= ''
 			for yuan in range(len(yuan_l)):
-				yuan_rmb += yuan_l[yuan]         #拼接消费金额为字符串
+				yuan_rmb += yuan_l[yuan]		 #拼接消费金额为字符串
 
 			money_rmb = float(yuan_rmb)          #转换消费金额字符串为浮点数
 			money_usd = round(self.excg_rate[1]*money_rmb, 2) #转换消费金额为美元格式，并保留2位小数
@@ -171,15 +171,15 @@ class DebtManage():
 		del sheets[sheets.index(self.year_key)]
 		##########################################
 
-		if not os.path.exists(excel_name):       #判断对应年文件是否存在,不存在就创建（一年执行一次)
+		if not os.path.exists(excel_name):		#判断对应年文件是否存在,不存在就创建（一年执行一次)
 			self.create_year_sheet(sheets, excel_name)
 			
-		wb = openpyxl.load_workbook(excel_name)  #打开对应年的文件写入信息
+		wb = openpyxl.load_workbook(excel_name)	#打开对应年的文件写入信息
 		sheets = wb.get_sheet_names()
 		for key in keys:
-			key_title = key.title()              #消费方式的首字符大写
+			key_title = key.title()				#消费方式的首字符大写
 			if key_title not in sheets:
-				wb.create_sheet(1,key_title)     #为新消费方式添加分表(不常执行, 依邮件的信息而执行)
+				wb.create_sheet(1,key_title)	#为新消费方式添加分表(不常执行, 依邮件的信息而执行)
 				self.add_item(wb,key_title)
 
 			sheet_lis = [self.all_sheet, key_title]                   #每笔消费记录到总表和分表中
@@ -197,10 +197,10 @@ class DebtManage():
 	########5.创建数据记录表20xxdebt.xlsx##########
 	def create_year_sheet(self,sheets, excel_name):
 		'''如果不存在某年的表就建立相应的表(20xxdebt.xlsx)'''
-		sheets.append(self.all_sheet)            #加入总表All
+		sheets.append(self.all_sheet)			  #加入总表All
 		wb = openpyxl.Workbook()
 		for sheet in sheets:
-			wb.create_sheet(0, sheet.title())    #首字母大写
+			wb.create_sheet(0, sheet.title())	  #首字母大写
 		                                         
 		sheet_names = wb.get_sheet_names()
 		for sheet_name in sheet_names:
@@ -220,7 +220,7 @@ class DebtManage():
 
 
 class EmailManage():
-	'''继承父类，连接网络查询，下载，调用父类函数写入excel,删除邮箱对应邮件'''
+	'''连接网络查询，下载，调用Debtmanage类函数写入excel,删除邮箱对应邮件'''
 	def __init__(self):
 		'''初始化设置相关信息'''
 		self.debtmanage  = DebtManage()
@@ -287,7 +287,7 @@ class EmailManage():
 		msg = Parser().parsestr(msg_content)              #解析邮件内容
 
 		value = msg.get("Subject", '').lower()
-		if self.identifier in value:             #标题含有关键的标识符时执行
+		if self.identifier in value:			 #标题含有关键的标识符时执行
 			self.write_to_inbox(msg)             #先写入暂时文件inbox.txt
 			self.debtmanage.write_to_excel()     #调用DebtManage的方法,写入excel(核心函数)
 			server.dele(index)                   #删除邮件,核心函数,千万不要误删
@@ -307,7 +307,7 @@ class EmailManage():
 			for index in range(indexs, indexs - self.email_num, -1):
 				self.download_write(index, server)#具体写入函数
 		else:
-			for index in range(indexs,0,-1):      #不太可能执行,除非邮件数量少于10
+			for index in range(indexs,0,-1):	  #不太可能执行,除非邮件数量少于10
 				self.download_write(index, server) 
 		server.quit()                             #断开同邮箱服务器的连接
 

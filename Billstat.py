@@ -14,7 +14,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
 #    1.按照年月日保存每笔消费信息   
 #    2.按照每月总消费统计信息       
 #    3.按照每年的消费信息建立统计表 

@@ -14,16 +14,16 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-#    1.按照年月日保存每笔消费信息   
-#    2.按照每月总消费统计信息       
-#    3.按照每年的消费信息建立统计表 
-#    4.保存的信息格式为xlsx         
-#    5.将统计信息展示为图片         
+#    1.按照每年的消费信息建立统计表 
+#    2.按照年月日保存每笔消费信息   
+#    3.保存的信息格式为xlsx         
+#    4.后期将加入按照每月总消费统计信息的功能      
+#    5.后期将加入将统计信息展示为图片的功能         
 
 #发生中文编码错误就取消注释
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
 
 import requests
 import openpyxl
@@ -54,14 +54,13 @@ class DebtManage():
 		self.basename   = "debt.xlsx"                   #excel表基本名,前面会自动要加上年和路径信息
 		self.excg_rate  = self.exchange_rate()          #设置实时人民币兑美元汇率
 		self.detail_tm  = self.date_time()              #设置时间
-		self.cost_dict  = {                             #消费信息项名称
-			                "1":'time',					#时间 
-		                    "2":'rmb',                  #消费金额(元)
-							"3":'dollar',				#消费金额(美元)
-			              }
+		self.cost_dict  = {
+							"1":'time',					#系统记录时间
+							"2":'rmb',					#消费金额(元)
+							"3":'dollar'}				#消费金额(美元)
 		self.sheet_info = {                             #excel表项名称,时间，消费方式等等
 							"1":'Date(y-m-d h:m:s)',	#时间 
-		                    "2":'Method',               #消费方式
+							"2":'Method',               #消费方式
 							"3":'Expenditure(￥)',		#消费金额(元)
 							"4":'Expenditrue($)',		#消费金额(美元)
 							"5":'Notes'					#注

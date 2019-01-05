@@ -60,10 +60,10 @@ class DebtManage():
 							"3":'dollar'}#消费金额(美元)
 		self.sheet_info = {                             #excel表项名称,时间，消费方式等等
 							"1":'Date(y-m-d h:m:s)',#时间 
-							"2":'Method',			#消费方式
-							"3":'Expenditure(￥)',	#消费金额(元)
-							"4":'Expenditrue($)',	#消费金额(美元)
-							"5":'Notes'				#你自己添加的评注，比如买了衣服
+							"2":'Method',#消费方式
+							"3":'Expenditure(￥)',#消费金额(元)
+							"4":'Expenditrue($)',#消费金额(美元)
+							"5":'Notes'#你自己添加的评注，比如买了衣服
 						  }
 
 	########1.获取人民币兑美元汇率#########################

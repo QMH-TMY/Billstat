@@ -45,6 +45,8 @@ class DebtManage():
 		   时间和汇率信息等，所有的值
 		   依据自己的电脑自行设定
 		'''
+		self.excg_rate  = self.exchange_rate()          #设置实时人民币兑美元汇率
+		self.detail_tm  = self.date_time()              #设置时间
 		self.cur_dollar = 0.14516                       #人民币兑美元汇率(没网时使用,可自行设置)
 		self.sleep_time = 2                             #写入excel的间隔时间，写入太快会出现死循环
 		self.year_key   = 'year'                        #消费信息中用来判断是否设立新表的依据
@@ -52,18 +54,16 @@ class DebtManage():
 		self.inbox_dir  = '/home/shieber/automation/billstat/inbox.txt'  #暂存邮件的位置
 		self.excel_dir  = '/home/shieber/automation/billstat/'	         #excel存放路径 
 		self.basename   = "debt.xlsx"                   #excel表基本名,前面会自动要加上年和路径信息
-		self.excg_rate  = self.exchange_rate()          #设置实时人民币兑美元汇率
-		self.detail_tm  = self.date_time()              #设置时间
 		self.cost_dict  = {
-							"1":'time',#系统记录时间
-							"2":'rmb',#消费金额(元)
-							"3":'dollar'}#消费金额(美元)
+							"1":'time',					#系统记录时间
+							"2":'rmb',					#消费金额(元)
+							"3":'dollar'}				#消费金额(美元)
 		self.sheet_info = {                             #excel表项名称,时间，消费方式等等
-							"1":'Date(y-m-d h:m:s)',#时间 
-							"2":'Method',#消费方式
-							"3":'Expenditure(￥)',#消费金额(元)
-							"4":'Expenditrue($)',#消费金额(美元)
-							"5":'Notes'#你自己添加的评注，比如买了衣服
+							"1":'Date(y-m-d h:m:s)',	#时间 
+							"2":'Method',				#消费方式
+							"3":'Expenditure(￥)',		#消费金额(元)
+							"4":'Expenditrue($)',		#消费金额(美元)
+							"5":'Notes'					#你自己添加的评注，比如买了衣服
 						  }
 
 	########1.获取人民币兑美元汇率#########################
@@ -111,77 +111,75 @@ class DebtManage():
 		'''从邮件中提取所需的消费内容'''
 		emailObj = open(self.inbox_dir)
 		textline = emailObj.readline()
+
 		date_p = re.compile(r'\((\d+)(-|/|\.|\s)(\d+)(-|/|\.|\s)(\d+)\)') #正则查找消费时间
-		date   = date_p.findall(textline)
-				
-		if date:
-			year   = str(date[0][0]) 
-			time_d = "".join(date[0])
+		date_s   = date_p.findall(textline)
+		if date_s:
+			year = str(date_s[0][0]) 
+			date = "".join(date_s[0])
 		else:
-			year   = str(datetime.datetime.now().year)		#邮件里没记录时间就用当前时间
-			time_d = self.detail_tm[0]
+			year = str(datetime.datetime.now().year)		#邮件里没记录时间就用当前时间
+			date = self.detail_tm[0]
 
 		textline = emailObj.readline()
+		emailObj.close()
+
 		money_p = re.compile(r'(\w+?)(:)?(\d+)(\.)?(\d+)?')	#正则查找消费数据
-		money   = money_p.findall(textline)
+		money = money_p.findall(textline)
 		if money:
-			cost_info = self.get_money_dic(year, time_d, money)
+			cost_info = self.get_money_dic(year, date, money)
 		else:
 			cost_info = {}                       #如果没有消费信息返回空字典
-		emailObj.close()
+
 		return cost_info 
 
-	def get_money_dic(self, year, time_d, money):
+	def get_money_dic(self, year, date, money):
 		'''解析消费内容成字典格式并返回
 		   money格式为[('jd',':','32','.','21'),(),()]
 		'''
-		money_d  = {}
-		money_d[self.year_key] = year
-		for t in range(len(money)):
-			tuple_t = money[t]                   #解析消费数据元组
-			method  = tuple_t[0]                 #解析消费方式
-			yuan_l  = tuple_t[2:]                #解析消费金额字符为列表
-			yuan_rmb= ''
-			for yuan in range(len(yuan_l)):
-				yuan_rmb += yuan_l[yuan]		 #拼接消费金额为字符串
+		money_dic  = {}
+		money_dic[self.year_key] = year
+		for i in range(len(money)):
+			cost_tuple  = money[i]                   #解析消费数据元组
+			cost_method = cost_tuple[0]                 #解析消费方式
+			money_lis   = cost_tuple[2:]                #解析消费金额字符为列表
+			money_rmb   = float(''.join(money_lis))   #拼接消费金额为小数
+			money_usd   = round(self.excg_rate[1]*money_rmb, 2) #转换金额为美元格式，保留2位小数
+			sys_time    = date + self.detail_tm[1]
 
-			money_rmb = float(yuan_rmb)          #转换消费金额字符串为浮点数
-			money_usd = round(self.excg_rate[1]*money_rmb, 2) #转换消费金额为美元格式，并保留2位小数
-			sys_time  = time_d + self.detail_tm[1]
-			money_d[method] = {
+			money_dic[method] = {
 								self.cost_dict['1']: sys_time,
 			                   	self.cost_dict['2']: money_rmb,
 							   	self.cost_dict['3']: money_usd
 							  }                  #封装所有信息为字典并返回
-		return money_d 
+		return money_dic
 
 	########4.向Excel中写入消费信息################
 	def write_to_excel(self):
 		'''向20xxdebt.xlsx表中写入所有信息(核心函数)'''
 		cost_info = self.get_cost_info()
 		if not cost_info:
-			sys.exit(-1)                         #没有消费信息则直接退出
+			sys.exit(-1)                        #没有消费信息则直接退出
 
 		excel_name = self.excel_dir + str(cost_info[self.year_key]) + self.basename 
-		#########keys 不能直接赋给sheets###########
-		keys   = cost_info.keys()
+		keys   = cost_info.keys()               #keys处容易出错
 		del keys[keys.index(self.year_key)]
-		sheets = cost_info.keys()
-		del sheets[sheets.index(self.year_key)]
-		##########################################
 
 		if not os.path.exists(excel_name):		#判断对应年文件是否存在,不存在就创建（一年执行一次)
-			self.create_year_sheet(sheets, excel_name)
+			keys.append(self.all_sheet)		    #加入总表All项
+			self.create_year_sheet(keys, excel_name)
+			del keys[keys.index(self.all_sheet)]#删除All项
 			
 		wb = openpyxl.load_workbook(excel_name)	#打开对应年的文件写入信息
 		sheets = wb.get_sheet_names()
 		for key in keys:
-			key_title = key.title()				#消费方式的首字符大写
-			if key_title not in sheets:
-				wb.create_sheet(1,key_title)	#为新消费方式添加分表(不常执行, 依邮件的信息而执行)
-				self.add_item(wb,key_title)
+			key_upper = key.title()				#消费方式的首字符大写
 
-			sheet_lis = [self.all_sheet, key_title]                   #每笔消费记录到总表和分表中
+			if key_upper not in sheets:
+				wb.create_sheet(1,key_upper)	#为新消费方式添加分表(不常执行, 依邮件的信息而执行)
+				self.add_item(wb,key_upper)
+
+			sheet_lis = [self.all_sheet, key_upper]                   #每笔消费记录到总表和分表中
 			for sheet in sheet_lis:
 				curren_s = wb.get_sheet_by_name(sheet)                #开总表和分表记录消费
 				n_row  = str(curren_s.get_highest_row() + 1)          #设置写入的行数:最大行加1
@@ -190,16 +188,16 @@ class DebtManage():
 				curren_s['C' + n_row] = cost_info[key][self.cost_dict['2']] #消费金额(人民币格式）
 				curren_s['D' + n_row] = cost_info[key][self.cost_dict['3']] #消费金额(美元格式）
 				#curren_s.cell(row=new_row, column=i).value=new_t     更健壮的写入方式，后面考虑
+
 		wb.save(excel_name)
-		time.sleep(self.sleep_time)              #稍停顿，待excel表数据存储完毕，写入太快会出错
+		time.sleep(self.sleep_time)             #稍停顿，待excel表数据存储完毕，写入太快会出错
 
 	########5.创建数据记录表20xxdebt.xlsx##########
 	def create_year_sheet(self,sheets, excel_name):
 		'''如果不存在某年的表就建立相应的表(20xxdebt.xlsx)'''
-		sheets.append(self.all_sheet)			  #加入总表All
 		wb = openpyxl.Workbook()
 		for sheet in sheets:
-			wb.create_sheet(0, sheet.title())	  #首字母大写
+			wb.create_sheet(0, sheet.title())   #首字母大写
 		                                         
 		sheet_names = wb.get_sheet_names()
 		for sheet_name in sheet_names:
@@ -271,8 +269,10 @@ class EmailManage():
 			server.pass_(self.password) 
 		except Exception as err:
 			return None, None
+
 		resp, mails, octets = server.list() 
 		indexs = len(mails) 
+
 		return indexs, server
 
 	def download_write(self, index, server):

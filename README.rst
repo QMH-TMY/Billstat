@@ -1,6 +1,6 @@
 Billstat
 =============
-a cron-job to statistics your expendirture.
+A cron-job to statistics your expendirture.
 
 Versions
 --------

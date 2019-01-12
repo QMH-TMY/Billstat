@@ -4,7 +4,7 @@ a cron-job to statistics your expendirture.
 
 Versions
 --------
-billstat works with Python 2.7
+Billstat works with Python 2.7
 
 Installation
 ------------

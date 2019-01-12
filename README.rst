@@ -1,6 +1,6 @@
 Billstat
 =============
-A cron-job to statistics your expendirture.
+A cron-job to statistics your expendirture in Excel file 20xxdebt.xlsx.
 
 Versions
 --------

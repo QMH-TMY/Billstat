@@ -1,10 +1,11 @@
 ------------
 # Billstat #
 ------------
-   A cron-job to statistics your expendirture in Excel file 20xxdebt.xlsx.
+A cron-job to statistics your expendirture in Excel file 20xxdebt.xlsx.
 
 # Requirement #
-	Python 2.7
+	openpyxl
+	$ sudo pip3 install -r requirement.txt
 
 # Usage #
     send a message to your 163 mail server your computer will tackle the bills

@@ -6,23 +6,6 @@ Versions
 --------
 Billstat works with Python 2.7
 
-Installation
-------------
-
-Github
-~~~~~~
-
-::
-
-    pip install git+https://github.com/QMH-TMY/billstat.git
-
-or
-
-::
-
-    git clone https://github.com/QMH-TMY/billstat.git
-    python Ebooksfinder/setup.py install
-
 Usage
 -----
 
